@@ -52,6 +52,9 @@ def install_proof_producer():
 
 def install_template():
     try:
+        subprocess.run(["git", "clone", "--recurse-submodules", "git@github.com:NilFoundation/zkllvm-template.git"])
+        subprocess.run(["cd", "zkllvm-template"], shell=True)
+        subprocess.run(["docker", "pull", "ghcr.io/nilfoundation/toolchain:latest"])
         print ("zkLLVM template installed successfully.")
 
     except Exception as e:
