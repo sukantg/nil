@@ -60,8 +60,13 @@ def circuit_compilation(repo):
         print(f"Error running circuit: {e}")
 
 def assigner_measurements(repo):
+    # A byte-code file ./build/src/template.ll 
+    # is generated on the circuit compilation step
     try:
-        print("Assigner measurements")
+        memory_result = subprocess.run(["valgrind", "--tool=massif", "assigner", "-b", "build/src/template.ll", "-p"], capture_output=True, text=True)
+        time_result = subprocess.run(["time", "assigner", "-b", "build/src/template.ll", "-p", "./src/main-input.js"], capture_output=True, text=True)
+        print(f"Assigner memory: {memory_usage:.1f} GB")
+        print(f"Assigner time: {time:.1f} s")
 
     except Exception as e:
         print(f"Error getting assigner measurements: {e}")
@@ -69,8 +74,9 @@ def assigner_measurements(repo):
 
 def proof_measurements(repo):
     try:
-        print("Proof measurements")
-        
+        print(f"Proof memory: {memory_usage:.1f} GB")
+        print(f"Proof generator time: {time:.1f} s") 
+     
     except Exception as e:
         print(f"Error getting Proof measurements: {e}")
        
@@ -82,3 +88,4 @@ if __name__ == "__main__":
     install_vargrind_visualizer()
     file_updates("./zkllvm-template","updated_main.txt","updated_main_input.json")
     circuit_compilation("./zkllvm-template")
+    assigner_measurements("./zkllvm-template")
