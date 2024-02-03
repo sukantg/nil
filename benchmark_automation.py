@@ -4,7 +4,7 @@ import subprocess
 def build_assigner():
     try:
         os.system("sudo apt install build-essential libssl-dev cmake clang-12 git curl pkg-config")
-        os.system("git clone https://github.com/NilFoundation/zkLLVM.git")
+        os.system("git clone --recurse-submodules https://github.com/NilFoundation/zkLLVM.git")
         os.chdir('zkLLVM')
         
         # Using Ninja
