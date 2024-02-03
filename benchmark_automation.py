@@ -1,7 +1,25 @@
+import os
 import subprocess
 
 def build_assigner():
     try:
+        os.system("sudo apt install build-essential libssl-dev cmake clang-12 git curl pkg-config")
+        os.system("git clone https://github.com/NilFoundation/zkLLVM.git")
+        os.chdir('zkLLVM')
+        
+        # Using Ninja
+        os.system('cmake -G "Ninja" -B build -DCMAKE_BUILD_TYPE=Release .')
+        # C++ Compiler
+        os.system("ninja -C ${ZKLLVM_BUILD:-build} assigner clang -j$(nproc)")
+        # Rust Compiler
+        os.system('cmake -G "Ninja" -B build -DCMAKE_BUILD_TYPE=Release -DRSLANG_BUILD_EXTENDED=TRUE -DRSLANG_BUILD_TOOLS=cargo .')
+        os.system("export LD_LIBRARY_PATH=\"$LD_LIBRARY_PATH:$(pwd)/build/libs/circifier/llvm/lib\"")
+        os.system("ninja -C build rslang -j$(nproc)")
+        
+        #Check version to verify install
+        os.system("export RSLANG=\"$(pwd)/build/libs/rslang/build/host\"")
+        os.system("RUSTC=$RSLANG/stage1/bin/rustc $RSLANG/stage1-tools-bin/cargo --version")
+        
         print ("Assigner built successfully")
 
     except Exception as e:
