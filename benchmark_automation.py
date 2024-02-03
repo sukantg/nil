@@ -25,7 +25,7 @@ def build_assigner():
     except Exception as e:
         print(f"Error during assigner build: {e}")
 
-def install_proof_generator():
+def install_proof_producer():
     try:
         subprocess.run(["echo", "'deb [trusted=yes]  http://deb.nil.foundation/ubuntu/ all main'", ">>", "/etc/apt/sources.list"])
         subprocess.run(["apt", "update"])
@@ -45,7 +45,7 @@ def install_proof_generator():
 
         # Install the proof producer
         subprocess.run(["apt", "install", "proof-producer"])
-        print ("Proof generator installed successfully.")
+        print ("Proof producer installed successfully.")
 
     except Exception as e:
         print(f"Error during proof generator install: {e}")
@@ -119,7 +119,7 @@ def proof_measurements(repo):
 
 if __name__ == "__main__":
     build_assigner()
-    install_proof_generator()
+    install_proof_producer()
     install_template()
     install_vargrind_visualizer()
     file_updates("./zkllvm-template","updated_main.txt","updated_main_input.json")
