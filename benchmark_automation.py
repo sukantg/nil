@@ -10,13 +10,13 @@ def build_assigner():
         # Using Ninja
         os.system('cmake -G "Ninja" -B build -DCMAKE_BUILD_TYPE=Release .')
         # C++ Compiler
-        os.system("ninja -C ${ZKLLVM_BUILD:-build} assigner clang -j$(nproc)")
+        os.system("ninja -C build assigner clang -j$(nproc)")
         # Rust Compiler
         os.system('cmake -G "Ninja" -B build -DCMAKE_BUILD_TYPE=Release -DRSLANG_BUILD_EXTENDED=TRUE -DRSLANG_BUILD_TOOLS=cargo .')
         os.system("export LD_LIBRARY_PATH=\"$LD_LIBRARY_PATH:$(pwd)/build/libs/circifier/llvm/lib\"")
         os.system("ninja -C build rslang -j$(nproc)")
         
-        #Check version to verify install
+        # Check the version to verify install
         os.system("export RSLANG=\"$(pwd)/build/libs/rslang/build/host\"")
         os.system("RUSTC=$RSLANG/stage1/bin/rustc $RSLANG/stage1-tools-bin/cargo --version")
         
@@ -27,6 +27,24 @@ def build_assigner():
 
 def install_proof_generator():
     try:
+        subprocess.run(["echo", "'deb [trusted=yes]  http://deb.nil.foundation/ubuntu/ all main'", ">>", "/etc/apt/sources.list"])
+        subprocess.run(["apt", "update"])
+        # Install dependencies
+        subprocess.run(["sudo", "apt-get", "install", "-y", 
+                        "build-essential", "liblz4-dev", "libgnutls28-dev", 
+                        "libyaml-cpp-dev", "libsctp-dev", "ragel", 
+                        "xfslibs-dev", "systemtap-sdt-dev", "libc-ares-dev", 
+                        "libhwloc-dev", "libssl-dev", "libicu-dev", 
+                        "libprotobuf-dev", "lsb-release", "gnutls-dev", 
+                        "pkg-config", "lksctp-tools", "numactl"])
+        
+        subprocess.run(["mkdir", "build"])
+        subprocess.run(["cd", "build"])
+        subprocess.run(["cmake", ".."])
+        subprocess.run(["make", "-j", "$(nrpoc)"])
+
+        # Install the proof producer
+        subprocess.run(["apt", "install", "proof-producer"])
         print ("Proof generator installed successfully.")
 
     except Exception as e:
@@ -64,7 +82,7 @@ def file_updates(repo, main_cpp, main_input ):
         with open(final_input_path, 'w') as final_input_file:
             final_input_file.write(updated_input_content)  
 
-        print(f"main.cpp and main-input.json in '{repo}' updated successfully.")  
+        print("main.cpp and main-input.json in '{repo}' updated successfully.")  
 
     except Exception as e:
         print(f"Error updating files: {e}")      
