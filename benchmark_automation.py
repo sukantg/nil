@@ -10,11 +10,11 @@ def build_assigner():
         # Using Ninja
         os.system('cmake -G "Ninja" -B build -DCMAKE_BUILD_TYPE=Release .')
         # C++ Compiler
-        os.system("ninja -C build assigner clang -j$(nproc)")
+        os.system("ninja -C assigner_build assigner clang -j$(nproc)")
         # Rust Compiler
-        os.system('cmake -G "Ninja" -B build -DCMAKE_BUILD_TYPE=Release -DRSLANG_BUILD_EXTENDED=TRUE -DRSLANG_BUILD_TOOLS=cargo .')
-        os.system("export LD_LIBRARY_PATH=\"$LD_LIBRARY_PATH:$(pwd)/build/libs/circifier/llvm/lib\"")
-        os.system("ninja -C build rslang -j$(nproc)")
+        os.system('cmake -G "Ninja" -B assigner_build -DCMAKE_BUILD_TYPE=Release -DRSLANG_BUILD_EXTENDED=TRUE -DRSLANG_BUILD_TOOLS=cargo .')
+        os.system("export LD_LIBRARY_PATH=\"$LD_LIBRARY_PATH:$(pwd)/assigner_build/libs/circifier/llvm/lib\"")
+        os.system("ninja -C assigner_build rslang -j$(nproc)")
         
         # Check the version to verify install
         os.system("export RSLANG=\"$(pwd)/build/libs/rslang/build/host\"")
@@ -38,8 +38,8 @@ def install_proof_producer():
                         "libprotobuf-dev", "lsb-release", "gnutls-dev", 
                         "pkg-config", "lksctp-tools", "numactl"])
         
-        subprocess.run(["mkdir", "build"])
-        subprocess.run(["cd", "build"])
+        subprocess.run(["mkdir", "proof_build"])
+        subprocess.run(["cd", "proof_build"])
         subprocess.run(["cmake", ".."])
         subprocess.run(["make", "-j", "$(nrpoc)"])
 
@@ -102,10 +102,13 @@ def assigner_measurements(repo):
     # A byte-code file ./build/src/template.ll 
     # is generated on the circuit compilation step
     try:
-        memory_result = subprocess.run(["valgrind", "--tool=massif", "assigner", "-b", "build/src/template.ll", "-p"], capture_output=True, text=True)
-        time_result = subprocess.run(["time", "assigner", "-b", "build/src/template.ll", "-p", "./src/main-input.js"], capture_output=True, text=True)
-        print(f"Assigner memory: {memory_usage:.1f} GB")
-        print(f"Assigner time: {time:.1f} s")
+        memory_output = subprocess.run(["valgrind", "--tool=massif", "assigner", "-b", "build/src/template.ll", "-p"], capture_output=True, text=True)
+        time_output = subprocess.run(["time", "assigner", "-b", "build/src/template.ll", "-p", "./src/main-input.js"], capture_output=True, text=True)
+        # assigner_memory = parse_valgrind_output(assigner_output)
+        # assigner_time = parse_time_output(time_output)
+        
+        print(f"Assigner memory: {assigner_memory:.1f} GB")
+        print(f"Assigner time: {assigner_timetime:.1f} s")
 
     except Exception as e:
         print(f"Error getting assigner measurements: {e}")
