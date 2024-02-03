@@ -24,7 +24,7 @@ def install_template():
 def install_vargrind_visualizer():
     try:
         # Install Valgrind and Massif-Visualizer
-        # subprocess.run(['sudo', 'apt-get', 'install', 'valgrind', 'massif-visualizer'], check=True)
+        subprocess.run(['sudo', 'apt-get', 'install', 'valgrind', 'massif-visualizer'], check=True)
         print("Valgrind and Massif-Visualizer installed successfully.")
 
     except Exception as e:
@@ -49,7 +49,31 @@ def file_updates(repo, main_cpp, main_input ):
         print(f"main.cpp and main-input.json in '{repo}' updated successfully.")  
 
     except Exception as e:
-        print(f"Error updating main-input.json: {e}")      
+        print(f"Error updating files: {e}")      
+
+def circuit_compilation(repo):
+    try:
+        subprocess.run(["./scripts/run.sh", "--docker", "compile"], check=True)
+        print("Circuit compiled successfully.")
+
+    except Exception as e:
+        print(f"Error running circuit: {e}")
+
+def assigner_measurements(repo):
+    try:
+        print("Assigner measurements")
+
+    except Exception as e:
+        print(f"Error getting assigner measurements: {e}")
+    
+
+def proof_measurements(repo):
+    try:
+        print("Proof measurements")
+        
+    except Exception as e:
+        print(f"Error getting Proof measurements: {e}")
+       
 
 if __name__ == "__main__":
     build_assigner()
@@ -57,3 +81,4 @@ if __name__ == "__main__":
     install_template()
     install_vargrind_visualizer()
     file_updates("./zkllvm-template","updated_main.txt","updated_main_input.json")
+    circuit_compilation("./zkllvm-template")
