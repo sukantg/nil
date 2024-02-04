@@ -9,7 +9,7 @@ def build_assigner():
         os.chdir('zkLLVM')
         
         # Using Ninja
-        os.system('cmake -G "Ninja" -B build -DCMAKE_BUILD_TYPE=Release .')
+        os.system('cmake -G "Ninja" -B assigner_build -DCMAKE_BUILD_TYPE=Release .')
         # C++ Compiler
         os.system("ninja -C assigner_build assigner clang -j$(nproc)")
         # Rust Compiler
@@ -108,14 +108,14 @@ def circuit_compilation(repo):
 def parse_memory_output(output):
     # Filtering lines containing "useful-heap(B)" and print the fourth column
     command = 'awk "/useful-heap(B)/ {print $4}"'
-    memory = subprocess.run(['echo', output, '|', command])
+    memory = subprocess.run(f'echo "{output}" | {command}', shell=True, capture_output=True, text=True)
     return int(memory.strip()) if memory.strip().isdigit() else None
 
 # To parse out time data from resulting table
 def parse_time_output(output):
     # Filtering lines containing "time" and print the second column
     command = 'awk "/time(i)/ {print $2}"'
-    time = subprocess.run(['echo', output, '|', command])
+    time = subprocess.run(f'echo "{output}" | {command}', shell=True, capture_output=True, text=True)
     return float(time.strip()) if time.strip() else None
 
 # Stage 7 - Measuring assigner output
