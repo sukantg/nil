@@ -1,6 +1,7 @@
 import os
 import subprocess
 
+# Stage 1 - Building the assigner
 def build_assigner():
     try:
         os.system("sudo apt install build-essential libssl-dev cmake clang-12 git curl pkg-config")
@@ -25,10 +26,11 @@ def build_assigner():
     except Exception as e:
         print(f"Error during assigner build: {e}")
 
+# Stage 2 - Installing the proof generator
 def install_proof_producer():
     try:
-        subprocess.run(["echo", "'deb [trusted=yes]  http://deb.nil.foundation/ubuntu/ all main'", ">>", "/etc/apt/sources.list"])
-        subprocess.run(["apt", "update"])
+        subprocess.run(['echo', "'deb [trusted=yes]  http://deb.nil.foundation/ubuntu/ all main'", '|', 'tee', '-a', '/etc/apt/sources.list'])
+        subprocess.run(["sudo","apt","update","-y"])
         # Install dependencies
         subprocess.run(["sudo", "apt-get", "install", "-y", 
                         "build-essential", "liblz4-dev", "libgnutls28-dev", 
@@ -44,12 +46,13 @@ def install_proof_producer():
         subprocess.run(["make", "-j", "$(nrpoc)"])
 
         # Install the proof producer
-        subprocess.run(["apt", "install", "proof-producer"])
+        subprocess.run(["apt", "install","-y", "proof-producer"])
         print ("Proof producer installed successfully.")
 
     except Exception as e:
         print(f"Error during proof generator install: {e}")
 
+# Stage 3 - Cloning the zkLLVM Template
 def install_template():
     try:
         subprocess.run(["git", "clone", "--recurse-submodules", "git@github.com:NilFoundation/zkllvm-template.git"])
@@ -60,7 +63,8 @@ def install_template():
     except Exception as e:
         print(f"Error during template install: {e}")
 
-def install_vargrind_visualizer():
+# Stage 4 - Installing heap profile tools
+def install_valgrind_visualizer():
     try:
         # Install Valgrind and Massif-Visualizer
         subprocess.run(['sudo', 'apt-get', 'install', 'valgrind', 'massif-visualizer'], check=True)
@@ -69,6 +73,7 @@ def install_vargrind_visualizer():
     except Exception as e:
         print(f"Error during install: {e}")        
 
+# Stage 5 - Updating local files with provided data
 def file_updates(repo, main_cpp, main_input ):
     try:
         # Changing the main.cpp file with provided data
@@ -88,8 +93,9 @@ def file_updates(repo, main_cpp, main_input ):
         print("main.cpp and main-input.json in '{repo}' updated successfully.")  
 
     except Exception as e:
-        print(f"Error updating files: {e}")      
+        print(f"Error updating files: {e}")  
 
+# Stage 6 - Compiling the circuit
 def circuit_compilation(repo):
     try:
         subprocess.run(["./scripts/run.sh", "--docker", "compile"], check=True)
@@ -98,13 +104,14 @@ def circuit_compilation(repo):
     except Exception as e:
         print(f"Error running circuit: {e}")
 
+# Stage 7 - Measuring assigner output
 def assigner_measurements(repo):
     # A byte-code file ./build/src/template.ll 
     # is generated on the circuit compilation step
     try:
         memory_output = subprocess.run(["valgrind", "--tool=massif", "assigner", "-b", "build/src/template.ll", "-p"], capture_output=True, text=True)
         time_output = subprocess.run(["time", "assigner", "-b", "build/src/template.ll", "-p", "./src/main-input.js"], capture_output=True, text=True)
-        # assigner_memory = parse_valgrind_output(assigner_output)
+        # assigner_memory = parse_memory_output(memory_output)
         # assigner_time = parse_time_output(time_output)
         
         print(f"Assigner memory: {assigner_memory:.1f} GB")
@@ -113,9 +120,14 @@ def assigner_measurements(repo):
     except Exception as e:
         print(f"Error getting assigner measurements: {e}")
     
-
-def proof_measurements(repo):
+# Stage 8 - Measuring proof output
+def proof_measurements():
     try:
+        memory_output = subprocess.run(["valgrind", "--tool=massif", "proof-generator-single-threaded", "--circuit", "build/src/template"], capture_output=True, text=True)
+        time_output = subprocess.run(["time", "proof-generator-single-threaded", "--circuit", "build/src/template"], capture_output=True, text=True)
+        # assigner_memory = parse_memory_output(memory_output)
+        # assigner_time = parse_time_output(time_output)
+        
         print(f"Proof memory: {memory_usage:.1f} GB")
         print(f"Proof generator time: {time:.1f} s") 
      
@@ -127,7 +139,8 @@ if __name__ == "__main__":
     build_assigner()
     install_proof_producer()
     install_template()
-    install_vargrind_visualizer()
+    install_valgrind_visualizer()
     file_updates("./zkllvm-template","updated_main.txt","updated_main_input.json")
     circuit_compilation("./zkllvm-template")
     assigner_measurements("./zkllvm-template")
+    proof_measurements()
