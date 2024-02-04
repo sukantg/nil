@@ -104,6 +104,20 @@ def circuit_compilation(repo):
     except Exception as e:
         print(f"Error running circuit: {e}")
 
+# To parse out memory data from resulting table
+def parse_memory_output(output):
+    # Filtering lines containing "useful-heap(B)" and print the fourth column
+    command = 'awk "/useful-heap(B)/ {print $4}"'
+    memory = subprocess.run(['echo', output, '|', command])
+    return int(memory.strip()) if memory.strip().isdigit() else None
+
+# To parse out time data from resulting table
+def parse_time_output(output):
+    # Filtering lines containing "time" and print the second column
+    command = 'awk "/time(i)/ {print $2}"'
+    time = subprocess.run(['echo', output, '|', command])
+    return float(time.strip()) if time.strip() else None
+
 # Stage 7 - Measuring assigner output
 def assigner_measurements(repo):
     # A byte-code file ./build/src/template.ll 
@@ -111,8 +125,8 @@ def assigner_measurements(repo):
     try:
         memory_output = subprocess.run(["valgrind", "--tool=massif", "assigner", "-b", "build/src/template.ll", "-p"], capture_output=True, text=True)
         time_output = subprocess.run(["time", "assigner", "-b", "build/src/template.ll", "-p", "./src/main-input.js"], capture_output=True, text=True)
-        # assigner_memory = parse_memory_output(memory_output)
-        # assigner_time = parse_time_output(time_output)
+        assigner_memory = parse_memory_output(memory_output)
+        assigner_time = parse_time_output(time_output)
         
         print(f"Assigner memory: {assigner_memory:.1f} GB")
         print(f"Assigner time: {assigner_timetime:.1f} s")
@@ -125,11 +139,11 @@ def proof_measurements():
     try:
         memory_output = subprocess.run(["valgrind", "--tool=massif", "proof-generator-single-threaded", "--circuit", "build/src/template"], capture_output=True, text=True)
         time_output = subprocess.run(["time", "proof-generator-single-threaded", "--circuit", "build/src/template"], capture_output=True, text=True)
-        # assigner_memory = parse_memory_output(memory_output)
-        # assigner_time = parse_time_output(time_output)
+        proof_memory = parse_memory_output(memory_output)
+        proof_time = parse_time_output(time_output)
         
-        print(f"Proof memory: {memory_usage:.1f} GB")
-        print(f"Proof generator time: {time:.1f} s") 
+        print(f"Proof memory: {proof_memory:.1f} GB")
+        print(f"Proof generator time: {proof_time:.1f} s") 
      
     except Exception as e:
         print(f"Error getting Proof measurements: {e}")
