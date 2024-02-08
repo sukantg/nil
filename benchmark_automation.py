@@ -8,14 +8,14 @@ def build_assigner():
         os.system("git clone --recurse-submodules https://github.com/NilFoundation/zkLLVM.git")
         os.chdir('zkLLVM')
         
-        # Using Ninja
-        os.system('cmake -G "Ninja" -B assigner_build -DCMAKE_BUILD_TYPE=Release .')
+        # Using Unix Makefiles
+        os.system('cmake -G "Unix Makefiles" -B ${ZKLLVM_BUILD:-build} -DCMAKE_BUILD_TYPE=Release .')
         # C++ Compiler
-        os.system("ninja -C assigner_build assigner clang -j$(nproc)")
+        os.system("make -C ${ZKLLVM_BUILD:-build} assigner clang -j$(nproc)")
         # Rust Compiler
-        os.system('cmake -G "Ninja" -B assigner_build -DCMAKE_BUILD_TYPE=Release -DRSLANG_BUILD_EXTENDED=TRUE -DRSLANG_BUILD_TOOLS=cargo .')
+        os.system('cmake -G "Unix Makefiles" -B ${ZKLLVM_BUILD:-build} -DCMAKE_BUILD_TYPE=Release -DRSLANG_BUILD_EXTENDED=TRUE -DRSLANG_BUILD_TOOLS=cargo .')
         os.system("export LD_LIBRARY_PATH=\"$LD_LIBRARY_PATH:$(pwd)/assigner_build/libs/circifier/llvm/lib\"")
-        os.system("ninja -C assigner_build rslang -j$(nproc)")
+        os.system("make -C ${ZKLLVM_BUILD:-build} rslang -j$(nproc)")
         
         # Check the version to verify install
         os.system("export RSLANG=\"$(pwd)/build/libs/rslang/build/host\"")
@@ -47,6 +47,8 @@ def install_proof_producer():
 
         # Install the proof producer
         subprocess.run(["apt", "install","-y", "proof-producer"])
+        # Checking command line 
+        subprocess.run(["proof-generator", "--help"])
         print ("Proof producer installed successfully.")
 
     except Exception as e:
@@ -55,9 +57,10 @@ def install_proof_producer():
 # Stage 3 - Cloning the zkLLVM Template
 def install_template():
     try:
-        subprocess.run(["git", "clone", "--recurse-submodules", "git@github.com:NilFoundation/zkllvm-template.git"])
+        subprocess.run(["git", "clone", "--recurse-submodules", "https://github.com/NilFoundation/zkllvm-template.git"])
         subprocess.run(["cd", "zkllvm-template"], shell=True)
-        subprocess.run(["docker", "pull", "ghcr.io/nilfoundation/toolchain:latest"])
+        subprocess.run(["sudo", "apt", "install", "docker.io"])
+        subprocess.run(["sudo" , "docker", "pull", "ghcr.io/nilfoundation/toolchain:latest"])
         print ("zkLLVM template installed successfully.")
 
     except Exception as e:
@@ -98,7 +101,7 @@ def file_updates(repo, main_cpp, main_input ):
 # Stage 6 - Compiling the circuit
 def circuit_compilation(repo):
     try:
-        subprocess.run(["./scripts/run.sh", "--docker", "compile"], check=True)
+        subprocess.run(["sudo" , "./scripts/run.sh", "--docker", "compile"], check=True)
         print("Circuit compiled successfully.")
 
     except Exception as e:
