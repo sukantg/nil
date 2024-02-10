@@ -89,7 +89,7 @@ def file_updates(repo, main_cpp, main_input):
         # Changing the main_input.json file with provided data
         final_input_path = os.path.join(repo, 'src', 'main-input.json')
         with open(main_input, 'r') as input_file:
-            updated_input_content = input_file.read()  # Corrected this line
+            updated_input_content = input_file.read()
         with open(final_input_path, 'w') as final_input_file:
             final_input_file.write(updated_input_content)
 
