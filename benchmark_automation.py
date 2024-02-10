@@ -22,6 +22,8 @@ def build_assigner():
         os.system("RUSTC=$RSLANG/stage1/bin/rustc $RSLANG/stage1-tools-bin/cargo --version")
         
         print ("Assigner built successfully")
+        # Going back since we changed directory
+        os.path.abspath('..') 
 
     except Exception as e:
         print(f"Error during assigner build: {e}")
