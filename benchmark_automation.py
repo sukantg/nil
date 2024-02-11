@@ -4,6 +4,8 @@ import subprocess
 # Stage 1 - Building the assigner
 def build_assigner():
     try:
+        # Saving current working directory
+        home = os.getcwd()
         os.system("sudo apt install build-essential libssl-dev cmake clang-12 git curl pkg-config")
         os.system("git clone --recurse-submodules https://github.com/NilFoundation/zkLLVM.git")
         os.chdir('zkLLVM')
@@ -21,10 +23,8 @@ def build_assigner():
         os.system("export RSLANG=\"$(pwd)/build/libs/rslang/build/host\"")
         os.system("RUSTC=$RSLANG/stage1/bin/rustc $RSLANG/stage1-tools-bin/cargo --version")
         
-        print ("Assigner built successfully")
-        # Going back since we changed directory
-        os.path.abspath('..') 
-
+        print ("*** Assigner built successfully *** ")
+    
     except Exception as e:
         print(f"Error during assigner build: {e}")
 
@@ -51,7 +51,7 @@ def install_proof_producer():
         subprocess.run(["apt", "install","-y", "proof-producer"])
         # Checking command line 
         subprocess.run(["proof-generator", "--help"])
-        print ("Proof producer installed successfully.")
+        print ("*** Proof producer installed successfully. ***")
 
     except Exception as e:
         print(f"Error during proof generator install: {e}")
@@ -59,11 +59,13 @@ def install_proof_producer():
 # Stage 3 - Cloning the zkLLVM Template
 def install_template():
     try:
+        # Going back to home directory
+        
         subprocess.run(["git", "clone", "--recurse-submodules", "https://github.com/NilFoundation/zkllvm-template.git"])
         subprocess.run(["cd", "zkllvm-template"], shell=True)
         subprocess.run(["sudo", "apt", "install", "docker.io"])
         subprocess.run(["sudo" , "docker", "pull", "ghcr.io/nilfoundation/toolchain:latest"])
-        print ("zkLLVM template installed successfully.")
+        print ("*** zkLLVM-template installed successfully. ***")
 
     except Exception as e:
         print(f"Error during template install: {e}")
@@ -73,7 +75,7 @@ def install_valgrind_visualizer():
     try:
         # Install Valgrind and Massif-Visualizer
         subprocess.run(['sudo', 'apt-get', 'install', 'valgrind', 'massif-visualizer'], check=True)
-        print("Valgrind and Massif-Visualizer installed successfully.")
+        print("*** Valgrind and Massif-Visualizer installed successfully. ***")
 
     except Exception as e:
         print(f"Error during install: {e}")        
@@ -95,7 +97,7 @@ def file_updates(repo, main_cpp, main_input):
         with open(final_input_path, 'w') as final_input_file:
             final_input_file.write(updated_input_content)
 
-        print(f"main.cpp and main-input.json in '{repo}' updated successfully.")
+        print(f"*** main.cpp and main-input.json in '{repo}' updated successfully. ***")
 
     except Exception as e:
         print(f"Error updating files: {e}")
@@ -104,7 +106,7 @@ def file_updates(repo, main_cpp, main_input):
 def circuit_compilation(repo):
     try:
         subprocess.run(["sudo" , "./scripts/run.sh", "--docker", "compile"], check=True)
-        print("Circuit compiled successfully.")
+        print("*** Circuit compiled successfully. ***")
 
     except Exception as e:
         print(f"Error running circuit: {e}")
@@ -155,8 +157,12 @@ def proof_measurements():
        
 
 if __name__ == "__main__":
+    ## Getting Home directory
+    home = os.getcwd()
     build_assigner()
     install_proof_producer()
+    ## Setting location to home
+    os.chdir(home)
     install_template()
     install_valgrind_visualizer()
     file_updates("./zkllvm-template","updated_main.txt","updated_main_input.json")
