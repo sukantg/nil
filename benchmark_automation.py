@@ -103,7 +103,7 @@ def file_updates(repo, main_cpp, main_input):
         print(f"Error updating files: {e}")
  
 # Stage 6 - Compiling the circuit
-def circuit_compilation(repo):
+def circuit_compilation():
     try:
         subprocess.run(["sudo" , "./scripts/run.sh", "--docker", "compile"], check=True)
         print("*** Circuit compiled successfully. ***")
@@ -126,7 +126,7 @@ def parse_time_output(output):
     return float(time.strip()) if time.strip() else None
 
 # Stage 7 - Measuring assigner output
-def assigner_measurements(repo):
+def assigner_measurements():
     # A byte-code file ./build/src/template.ll 
     # is generated on the circuit compilation step
     try:
@@ -166,6 +166,8 @@ if __name__ == "__main__":
     install_template()
     install_valgrind_visualizer()
     file_updates("./zkllvm-template","updated_main.txt","updated_main_input.json")
-    circuit_compilation("./zkllvm-template")
-    assigner_measurements("./zkllvm-template")
+    ## Switching directory to zkllm template
+    os.chdir('zkllvm-template')
+    circuit_compilation()
+    assigner_measurements()
     proof_measurements()
